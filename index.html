@@ -65,7 +65,7 @@
     }, 300);
 
     const throttledFunc = throttle(function (item) {
-      console.log(item);
+      predictItem(item);
     }, 1000);
 
     async function predict() {
@@ -83,7 +83,7 @@
 
     function predictItem(item) {
       const payloadData = {
-        data: 1
+        data: "1"
       };
       if (item === 'plastic') {
         payloadData.data = '1'
@@ -97,13 +97,19 @@
         payloadData.data = '3'
       }
       console.log(item);
-      fetch(url, {
+      fetch("http://localhost:3000/api/post", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payloadData)
-      })
+      }).then(response => response.json())
+        .then(data => {
+          console.log('Success:', data);
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
     }
 
     function throttle(func, limit) {
