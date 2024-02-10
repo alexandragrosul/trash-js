@@ -60,6 +60,14 @@
     }
 
     // run the webcam image through the image model
+    const predictItemWithDebounce = debounce(function (item) {
+      console.log(item);
+    }, 300);
+
+    const throttledFunc = throttle(function (item) {
+      console.log(item);
+    }, 1000);
+
     async function predict() {
       // predict can take in an image, video or canvas html element
       const prediction = await model.predict(webcam.canvas);
@@ -68,6 +76,57 @@
           prediction[i].className + ": " + prediction[i].probability.toFixed(2);
         labelContainer.childNodes[i].innerHTML = classPrediction;
       }
+
+      throttledFunc(prediction.sort((a, b) => a.probability - b.probability)[prediction.length - 1]
+        .className);
+    }
+
+    function predictItem(item) {
+      const payloadData = {
+        data: 1
+      };
+      if (item === 'plastic') {
+        payloadData.data = '1'
+      }
+
+      if (item === 'paper') {
+        payloadData.data = '2'
+      }
+
+      if (item === 'banan') {
+        payloadData.data = '3'
+      }
+      console.log(item);
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payloadData)
+      })
+    }
+
+    function throttle(func, limit) {
+      let inThrottle;
+      return function () {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+          func.apply(context, args);
+          inThrottle = true;
+          setTimeout(() => inThrottle = false, limit);
+        }
+      };
+    }
+
+    function debounce(func, delay) {
+      let timeoutId;
+      return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          func.apply(this, args);
+        }, delay);
+      };
     }
   </script>
 
