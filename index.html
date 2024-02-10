@@ -65,7 +65,7 @@
     }, 300);
 
     const throttledFunc = throttle(function (item) {
-      console.log(item);
+      predictItem(item);
     }, 1000);
 
     async function predict() {
