@@ -9,13 +9,13 @@ const { ReadlineParser } = require("@serialport/parser-readline");
 
 // Create a new SerialPort instance using the settings
 // const portArduino = new SerialPort(settings.path, settings);
-let isEnabledArduino = false;
-if (isEnabledArduino) {
-  const portArduino = new SerialPort({
-    path: "COM3",
-    baudRate: 9600,
-  });
-}
+let isEnabledArduino = true;
+// if (isEnabledArduino) {
+const portArduino = new SerialPort({
+  path: "COM3",
+  baudRate: 9600,
+});
+// }
 
 const app = express();
 const port = 3000;
@@ -38,7 +38,7 @@ const smtpConfig = {
   secure: true, // Use true for SSL, false for TLS
   auth: {
     user: "trash@alexweb.md",
-    pass: "OfY}NDTd0,E8",
+    pass: "",
   },
 };
 
@@ -57,7 +57,7 @@ const transporter = nodemailer.createTransport(smtpConfig);
 // Set up the email options
 const mailOptions = {
   from: "trash@alexweb.md", // Sender email address
-  to: "maximgrosul@gmail.com", // Recipient email address
+  to: "grosulalexandra@gmail.com", // Recipient email address
   subject: "Cutia de gunoi cu plastic este plina!",
   html: utils.createEmailTemplate(
     "Alexandra",
@@ -97,6 +97,7 @@ app.get("/api/get", (req, res) => {
 app.post("/api/post", (req, res) => {
   const postData = req.body;
   console.log(postData.data);
+
   if (isEnabledArduino) {
     portArduino.write(postData.data);
   }
@@ -155,19 +156,22 @@ if (isEnabledArduino) {
     }
   });
   const parser = portArduino.pipe(new ReadlineParser({ delimiter: "\r\n" }));
-  // parser.on("data", console.log);
+  parser.on("data", console.log);
   parser.on("data", processData);
+  let emailSent = false;
+
   function processData(data) {
-    if (data && data.length < 5) {
+    if (data && data.length < 5 && !emailSent) {
       console.log("Data:", data);
       //TODO send email
-      // transporter.sendMail(mailOptions, (error, info) => {
-      //   if (error) {
-      //     console.error("Error sending email:", error.message);
-      //   } else {
-      //     console.log("Email sent successfully:", info.response);
-      //   }
-      // });
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error.message);
+        } else {
+          console.log("Email sent successfully:", info.response);
+          emailSent = true;
+        }
+      });
     }
   }
 }
