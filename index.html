@@ -48,7 +48,6 @@
     </div>
   </header>
   <div id="app"></div>
-  <div>Teachable Machine Image Model</div>
   <button type="button" onclick="init()">Start</button>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
@@ -57,7 +56,7 @@
     // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
 
     // the link to your model provided by Teachable Machine export panel
-    const URL = "https://teachablemachine.withgoogle.com/models/Z5HPOs-P0/";
+    const URL = "https://teachablemachine.withgoogle.com/models/ClQv844bT/";
 
     let model, webcam, labelContainer, maxPredictions;
 
@@ -100,8 +99,8 @@
       console.log(item);
     }, 300);
 
-    const throttledFunc = throttle(function (item) {
-      predictItem(item);
+    const throttledFunc = throttle(function (item, probability) {
+      predictItem(item, probability);
     }, 1000);
 
     async function predict() {
@@ -112,12 +111,11 @@
           prediction[i].className + ": " + prediction[i].probability.toFixed(2);
         labelContainer.childNodes[i].innerHTML = classPrediction;
       }
-
-      throttledFunc(prediction.sort((a, b) => a.probability - b.probability)[prediction.length - 1]
-        .className);
+      const selectedItem = prediction.sort((a, b) => a.probability - b.probability).at(-1)
+      throttledFunc(selectedItem.className, selectedItem.probability);
     }
 
-    function predictItem(item) {
+    function predictItem(item, probability) {
       const payloadData = {
         data: "1"
       };
@@ -132,7 +130,8 @@
       if (item === 'banan') {
         payloadData.data = '3'
       }
-      console.log(item);
+      console.log(item, probability);
+      if(probability > 0.8 && !isItemInCamera){
       fetch('http://localhost:3000/api/post', {
           method: 'POST',
           headers: {
@@ -152,6 +151,7 @@
         .catch((error) => {
           console.error('Error:', error);
         });
+      }
     }
 
     function throttle(func, limit) {
